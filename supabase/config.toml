@@ -1,1 +1,7 @@
 project_id = "zuohiompmxpmokpqnpuk"
+
+[functions.chat]
+verify_jwt = true
+
+[functions.send-email]
+verify_jwt = true
