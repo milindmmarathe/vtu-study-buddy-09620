@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, XCircle, Loader2, FileText, BookOpen, FlaskConical, ClipboardList } from 'lucide-react';
+import { CheckCircle2, XCircle, Loader2, FileText, BookOpen, FlaskConical, ClipboardList, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -79,6 +79,30 @@ export default function Admin() {
       toast.error('Failed to load documents');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDownload = async (document: Document) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('documents')
+        .download(document.file_path);
+
+      if (error) throw error;
+
+      const url = URL.createObjectURL(data);
+      const a = window.document.createElement('a');
+      a.href = url;
+      a.download = document.filename;
+      window.document.body.appendChild(a);
+      a.click();
+      window.document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast.success('Download started!');
+    } catch (error: any) {
+      console.error('Download error:', error);
+      toast.error('Failed to download file');
     }
   };
 
@@ -230,6 +254,16 @@ export default function Admin() {
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex gap-2 justify-end">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleDownload(doc)}
+                                disabled={processingId === doc.id}
+                                className="gap-2"
+                              >
+                                <Download className="w-4 h-4" />
+                                Download
+                              </Button>
                               <Button
                                 size="sm"
                                 onClick={() => handleApprove(doc)}

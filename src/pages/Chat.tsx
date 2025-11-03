@@ -39,14 +39,26 @@ const getDocumentIcon = (type: string) => {
   }
 };
 
+const STORAGE_KEY = 'vtu-mitra-chat-history';
+
 export default function Chat() {
   const { user } = useAuth();
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: 'assistant',
-      content: 'Hi! I\'m VTU MITRA, your AI study assistant. Ask me for any study materials like "I need Data Structures notes for 3rd sem CSE" or "Show me PYQs for Operating Systems 4th sem ISE".',
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch (error) {
+      console.error('Failed to load chat history:', error);
+    }
+    return [
+      {
+        role: 'assistant',
+        content: 'Hi! I\'m VTU MITRA, your AI study assistant. Ask me for study materials, lab programs, or PYQs like "I need Data Structures notes for 3rd sem CSE" or "Show me lab programs for 4th sem ISE".',
+      },
+    ];
+  });
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -54,6 +66,14 @@ export default function Chat() {
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+    } catch (error) {
+      console.error('Failed to save chat history:', error);
     }
   }, [messages]);
 
@@ -224,7 +244,7 @@ export default function Chat() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-            placeholder="Ask for study materials..."
+            placeholder="Ask for study materials, lab programs, or PYQs..."
             disabled={isLoading}
             className="flex-1"
           />

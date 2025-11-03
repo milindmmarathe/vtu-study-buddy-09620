@@ -107,7 +107,7 @@ export default function Upload() {
           <CardHeader>
             <CardTitle className="text-2xl">Upload Study Material</CardTitle>
             <CardDescription>
-              Share your notes, PYQs, or lab materials with fellow students
+              Share study materials, lab programs, or PYQs with fellow students
             </CardDescription>
           </CardHeader>
           <CardContent>

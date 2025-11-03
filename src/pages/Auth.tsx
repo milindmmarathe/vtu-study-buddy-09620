@@ -96,7 +96,7 @@ export default function Auth() {
           <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             VTU MITRA
           </h1>
-          <p className="text-muted-foreground mt-2">Your AI Study Assistant</p>
+          <p className="text-muted-foreground mt-2">Access study materials, lab programs & PYQs instantly</p>
         </div>
 
         <Tabs defaultValue="login" className="w-full">
