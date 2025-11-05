@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";
 import Chat from "./pages/Chat";
 import Upload from "./pages/Upload";
@@ -23,9 +24,10 @@ const App = () => (
         <BrowserRouter>
           <AuthProvider>
             <Routes>
+              <Route path="/" element={<Landing />} />
               <Route path="/auth" element={<Auth />} />
               <Route
-                path="/"
+                path="/chat"
                 element={
                   <ProtectedRoute>
                     <Chat />

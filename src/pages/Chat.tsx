@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { Send, Download, Mail, Loader2, FileText, BookOpen, FlaskConical, ClipboardList } from 'lucide-react';
+import { Send, Download, Mail, Loader2, FileText, BookOpen, FlaskConical, ClipboardList, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -116,47 +116,68 @@ export default function Chat() {
 
   const handleDownload = async (document: any) => {
     try {
+      toast.info('Preparing download...');
+      
+      // Get signed URL instead of direct download for better reliability
       const { data, error } = await supabase.storage
         .from('documents')
-        .download(document.file_path);
+        .createSignedUrl(document.file_path, 3600); // 1 hour expiry
 
       if (error) throw error;
 
-      const url = URL.createObjectURL(data);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = document.filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      if (!data?.signedUrl) {
+        throw new Error('Failed to generate download link');
+      }
+
+      // Open in new tab or trigger download
+      const link = window.document.createElement('a');
+      link.href = data.signedUrl;
+      link.download = document.filename;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      window.document.body.appendChild(link);
+      link.click();
+      window.document.body.removeChild(link);
+
+      // Track download in history
+      try {
+        await supabase.from('download_history').insert({
+          user_id: user?.id,
+          document_id: document.id
+        });
+      } catch (trackError) {
+        console.error('Failed to track download:', trackError);
+        // Don't fail the download if tracking fails
+      }
 
       toast.success('Download started!');
     } catch (error: any) {
       console.error('Download error:', error);
-      toast.error('Failed to download file');
+      toast.error('Failed to download file. Please try again.');
     }
   };
 
-  const handleEmailDocument = async (document: any) => {
-    if (!user?.email) return;
-
+  const handleShareDocument = async (document: any) => {
     try {
-      toast.info('Sending email...');
+      const shareUrl = `${window.location.origin}/chat?doc=${document.id}`;
       
-      const { error } = await supabase.functions.invoke('send-email', {
-        body: {
-          documentId: document.id,
-          recipientEmail: user.email,
-        },
-      });
-
-      if (error) throw error;
-
-      toast.success(`Document sent to ${user.email}!`);
+      if (navigator.share) {
+        await navigator.share({
+          title: document.filename,
+          text: `Check out this ${document.document_type} for ${document.subject}`,
+          url: shareUrl
+        });
+        toast.success('Shared successfully!');
+      } else {
+        // Fallback: copy to clipboard
+        await navigator.clipboard.writeText(shareUrl);
+        toast.success('Link copied to clipboard!');
+      }
     } catch (error: any) {
-      console.error('Email error:', error);
-      toast.error('Failed to send email');
+      if (error.name !== 'AbortError') {
+        console.error('Share error:', error);
+        toast.error('Failed to share');
+      }
     }
   };
 
@@ -205,7 +226,7 @@ export default function Chat() {
                               <Button
                                 size="sm"
                                 onClick={() => handleDownload(doc)}
-                                className="flex-1"
+                                className="flex-1 shadow-md hover:shadow-lg transition-all"
                               >
                                 <Download className="w-4 h-4 mr-2" />
                                 Download
@@ -213,11 +234,10 @@ export default function Chat() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => handleEmailDocument(doc)}
-                                className="flex-1"
+                                onClick={() => handleShareDocument(doc)}
+                                className="px-3"
                               >
-                                <Mail className="w-4 h-4 mr-2" />
-                                Email
+                                <Mail className="w-4 h-4" />
                               </Button>
                             </div>
                           </Card>
