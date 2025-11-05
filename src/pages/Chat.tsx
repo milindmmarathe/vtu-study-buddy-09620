@@ -139,9 +139,9 @@ export default function Chat() {
       link.click();
       window.document.body.removeChild(link);
 
-      // Track download in history
+      // Track download in history (types regenerate after remix)
       try {
-        await supabase.from('download_history').insert({
+        await (supabase as any).from('download_history').insert({
           user_id: user?.id,
           document_id: document.id
         });

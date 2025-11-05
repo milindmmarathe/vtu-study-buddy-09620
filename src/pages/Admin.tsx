@@ -49,7 +49,8 @@ export default function Admin() {
 
   const fetchPendingDocuments = async () => {
     try {
-      const { data, error } = await supabase
+      // Types regenerate after remix
+      const { data, error } = await (supabase as any)
         .from('documents')
         .select('*')
         .eq('status', 'pending')
@@ -60,7 +61,7 @@ export default function Admin() {
       // Fetch profile information separately
       const docsWithProfiles = await Promise.all(
         (data || []).map(async (doc) => {
-          const { data: profile } = await supabase
+          const { data: profile } = await (supabase as any)
             .from('profiles')
             .select('email, full_name')
             .eq('id', doc.uploaded_by)
@@ -133,8 +134,8 @@ export default function Admin() {
 
       if (deleteError) throw deleteError;
 
-      // Update database
-      const { error: updateError } = await supabase
+      // Update database (types regenerate after remix)
+      const { error: updateError } = await (supabase as any)
         .from('documents')
         .update({
           status: 'approved',
@@ -165,8 +166,8 @@ export default function Admin() {
 
       if (storageError) throw storageError;
 
-      // Delete from database
-      const { error: dbError } = await supabase
+      // Delete from database (types regenerate after remix)
+      const { error: dbError } = await (supabase as any)
         .from('documents')
         .delete()
         .eq('id', document.id);

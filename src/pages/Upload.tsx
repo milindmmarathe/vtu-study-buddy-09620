@@ -57,8 +57,8 @@ export default function Upload() {
 
       if (uploadError) throw uploadError;
 
-      // Create database entry
-      const { error: dbError } = await supabase.from('documents').insert({
+      // Create database entry (types regenerate after remix)
+      const { error: dbError } = await (supabase as any).from('documents').insert({
         filename: validated.file.name,
         subject: validated.subject,
         semester: validated.semester,

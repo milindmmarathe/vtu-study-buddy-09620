@@ -51,8 +51,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
       
-      // Check database for admin role
-      const { data, error } = await supabase
+      // Check database for admin role (types regenerate after remix)
+      const { data, error } = await (supabase as any)
         .from('user_roles')
         .select('role')
         .eq('user_id', userId)
