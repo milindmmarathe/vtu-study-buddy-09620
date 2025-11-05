@@ -7,7 +7,6 @@
 
 > **AI-powered study assistant for VTU students. Find notes, PYQs, and lab programs instantly.**
 
-[🚀 Live Demo](https://vtu-mitra.lovable.app) • [📖 Docs](#features) • [🐛 Issues](https://github.com/milindmmarathe/vtu-mitra/issues)
 
 ---
 
@@ -192,6 +191,3 @@ MIT License - use freely for any purpose.
 
 ---
 
-**Made with 💙 for VTU students** | **Hacknova 2025**
-
-⭐ Star us on GitHub!
