@@ -2,6 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { GraduationCap, LogOut, Upload, Shield, MessageSquare } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { getUserDisplayName } from '@/lib/user-utils';
 
 export function Navbar() {
   const { user, isAdmin, signOut } = useAuth();
@@ -22,9 +23,9 @@ export function Navbar() {
 
           {user && (
             <div className="flex items-center gap-2">
-              <Link to="/">
+              <Link to="/chat">
                 <Button 
-                  variant={location.pathname === '/' ? 'default' : 'ghost'} 
+                  variant={location.pathname === '/chat' ? 'default' : 'ghost'} 
                   size="sm"
                   className="gap-2"
                 >
@@ -59,8 +60,8 @@ export function Navbar() {
 
               <div className="h-6 w-px bg-border mx-2" />
 
-              <span className="text-sm text-muted-foreground hidden sm:block">
-                {user.email}
+              <span className="text-sm text-muted-foreground hidden sm:block font-medium">
+                @{getUserDisplayName(user)}
               </span>
 
               <Button onClick={signOut} variant="ghost" size="sm" className="gap-2">

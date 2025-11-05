@@ -9,12 +9,15 @@ import { GraduationCap, Loader2 } from 'lucide-react';
 import { z } from 'zod';
 
 const loginSchema = z.object({
-  email: z.string().trim().email({ message: 'Invalid email address' }),
+  userId: z.string()
+    .trim()
+    .min(3, { message: 'User ID must be at least 3 characters' })
+    .max(20, { message: 'User ID must be less than 20 characters' })
+    .regex(/^[a-zA-Z0-9_]+$/, { message: 'User ID can only contain letters, numbers, and underscores' }),
   password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
 });
 
 const signupSchema = loginSchema.extend({
-  fullName: z.string().trim().min(2, { message: 'Name must be at least 2 characters' }).max(100),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
@@ -33,13 +36,13 @@ export default function Auth() {
 
     const formData = new FormData(e.currentTarget);
     const data = {
-      email: formData.get('email') as string,
+      userId: formData.get('userId') as string,
       password: formData.get('password') as string,
     };
 
     try {
       const validated = loginSchema.parse(data);
-      await signIn(validated.email, validated.password);
+      await signIn(validated.userId, validated.password);
     } catch (error) {
       if (error instanceof z.ZodError) {
         const fieldErrors: Record<string, string> = {};
@@ -62,15 +65,14 @@ export default function Auth() {
 
     const formData = new FormData(e.currentTarget);
     const data = {
-      email: formData.get('email') as string,
+      userId: formData.get('userId') as string,
       password: formData.get('password') as string,
-      fullName: formData.get('fullName') as string,
       confirmPassword: formData.get('confirmPassword') as string,
     };
 
     try {
       const validated = signupSchema.parse(data);
-      await signUp(validated.email, validated.password, validated.fullName);
+      await signUp(validated.userId, validated.password);
     } catch (error) {
       if (error instanceof z.ZodError) {
         const fieldErrors: Record<string, string> = {};
@@ -114,16 +116,17 @@ export default function Auth() {
               <CardContent>
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="login-email">Email</Label>
+                    <Label htmlFor="login-userId">User ID</Label>
                     <Input
-                      id="login-email"
-                      name="email"
-                      type="email"
-                      placeholder="you@example.com"
+                      id="login-userId"
+                      name="userId"
+                      type="text"
+                      placeholder="your_user_id"
+                      autoComplete="username"
                       required
                     />
-                    {errors.email && (
-                      <p className="text-sm text-destructive">{errors.email}</p>
+                    {errors.userId && (
+                      <p className="text-sm text-destructive">{errors.userId}</p>
                     )}
                   </div>
                   <div className="space-y-2">
@@ -132,6 +135,7 @@ export default function Auth() {
                       id="login-password"
                       name="password"
                       type="password"
+                      autoComplete="current-password"
                       required
                     />
                     {errors.password && (
@@ -162,30 +166,21 @@ export default function Auth() {
               <CardContent>
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signup-name">Full Name</Label>
+                    <Label htmlFor="signup-userId">User ID</Label>
                     <Input
-                      id="signup-name"
-                      name="fullName"
+                      id="signup-userId"
+                      name="userId"
                       type="text"
-                      placeholder="John Doe"
+                      placeholder="your_user_id"
+                      autoComplete="username"
                       required
                     />
-                    {errors.fullName && (
-                      <p className="text-sm text-destructive">{errors.fullName}</p>
+                    {errors.userId && (
+                      <p className="text-sm text-destructive">{errors.userId}</p>
                     )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
-                    <Input
-                      id="signup-email"
-                      name="email"
-                      type="email"
-                      placeholder="you@example.com"
-                      required
-                    />
-                    {errors.email && (
-                      <p className="text-sm text-destructive">{errors.email}</p>
-                    )}
+                    <p className="text-xs text-muted-foreground">
+                      Only letters, numbers, and underscores. 3-20 characters.
+                    </p>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signup-password">Password</Label>
@@ -193,6 +188,7 @@ export default function Auth() {
                       id="signup-password"
                       name="password"
                       type="password"
+                      autoComplete="new-password"
                       required
                     />
                     {errors.password && (
@@ -205,6 +201,7 @@ export default function Auth() {
                       id="signup-confirm"
                       name="confirmPassword"
                       type="password"
+                      autoComplete="new-password"
                       required
                     />
                     {errors.confirmPassword && (

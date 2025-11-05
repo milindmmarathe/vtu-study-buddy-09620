@@ -10,8 +10,8 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   isAdmin: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, fullName: string) => Promise<void>;
+  signIn: (userId: string, password: string) => Promise<void>;
+  signUp: (userId: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -113,8 +113,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (userId: string, password: string) => {
     try {
+      // Convert userId to email format for Supabase Auth
+      const email = `${userId.toLowerCase()}@vtumitra.local`;
+      
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -122,7 +125,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) {
         if (error.message.includes('Invalid login credentials')) {
-          toast.error('Invalid email or password');
+          toast.error('Invalid User ID or password');
         } else {
           toast.error(error.message);
         }
@@ -130,28 +133,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       toast.success('Welcome back!');
-      navigate('/');
+      navigate('/chat');
     } catch (error) {
       throw error;
     }
   };
 
-  const signUp = async (email: string, password: string, fullName: string) => {
+  const signUp = async (userId: string, password: string) => {
     try {
+      // Convert userId to email format for Supabase Auth
+      const email = `${userId.toLowerCase()}@vtumitra.local`;
+      
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
-            full_name: fullName,
+            user_id: userId,
+            display_name: userId,
           },
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: `${window.location.origin}/chat`,
         },
       });
 
       if (error) {
         if (error.message.includes('User already registered')) {
-          toast.error('This email is already registered. Please sign in instead.');
+          toast.error('This User ID is already taken. Please choose another one.');
         } else {
           toast.error(error.message);
         }
@@ -159,7 +166,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       toast.success('Account created successfully! Welcome to VTU MITRA.');
-      navigate('/');
+      navigate('/chat');
     } catch (error) {
       throw error;
     }
