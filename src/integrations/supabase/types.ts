@@ -14,56 +14,161 @@ export type Database = {
   }
   public: {
     Tables: {
+      chat_messages: {
+        Row: {
+          created_at: string | null
+          documents: Json | null
+          id: string
+          is_user: boolean
+          message: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          documents?: Json | null
+          id?: string
+          is_user: boolean
+          message: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          documents?: Json | null
+          id?: string
+          is_user?: boolean
+          message?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      document_ratings: {
+        Row: {
+          created_at: string | null
+          document_id: string
+          id: string
+          rating: number | null
+          review: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          document_id: string
+          id?: string
+          rating?: number | null
+          review?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          document_id?: string
+          id?: string
+          rating?: number | null
+          review?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_ratings_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           approved_at: string | null
           approved_by: string | null
+          avg_rating: number | null
           branch: string
           created_at: string
           document_type: string
+          download_count: number | null
           file_path: string
+          file_size: number | null
           filename: string
           id: string
           semester: string
           status: string
           subject: string
+          total_ratings: number | null
           uploaded_at: string
           uploaded_by: string
         }
         Insert: {
           approved_at?: string | null
           approved_by?: string | null
+          avg_rating?: number | null
           branch: string
           created_at?: string
           document_type: string
+          download_count?: number | null
           file_path: string
+          file_size?: number | null
           filename: string
           id?: string
           semester: string
           status?: string
           subject: string
+          total_ratings?: number | null
           uploaded_at?: string
           uploaded_by: string
         }
         Update: {
           approved_at?: string | null
           approved_by?: string | null
+          avg_rating?: number | null
           branch?: string
           created_at?: string
           document_type?: string
+          download_count?: number | null
           file_path?: string
+          file_size?: number | null
           filename?: string
           id?: string
           semester?: string
           status?: string
           subject?: string
+          total_ratings?: number | null
           uploaded_at?: string
           uploaded_by?: string
         }
         Relationships: []
       }
+      download_history: {
+        Row: {
+          document_id: string
+          downloaded_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          document_id: string
+          downloaded_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          document_id?: string
+          downloaded_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "download_history_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
+          avatar_url: string | null
+          bio: string | null
           created_at: string
           email: string
           full_name: string | null
@@ -71,6 +176,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           email: string
           full_name?: string | null
@@ -78,6 +185,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           email?: string
           full_name?: string | null
@@ -85,6 +194,35 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      user_bookmarks: {
+        Row: {
+          created_at: string | null
+          document_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          document_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          document_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_bookmarks_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

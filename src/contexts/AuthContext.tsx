@@ -3,6 +3,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { isAdminEmail } from '@/lib/config';
 
 interface AuthContextType {
   user: User | null;
@@ -23,8 +24,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
 
-  const checkAdminStatus = async (userId: string) => {
+  // Auto-refresh session every 30 minutes to prevent expiration
+  useEffect(() => {
+    const refreshInterval = setInterval(async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error('Session refresh error:', error);
+        return;
+      }
+      if (session) {
+        console.log('Session refreshed automatically');
+        setSession(session);
+        setUser(session.user);
+      }
+    }, 30 * 60 * 1000); // 30 minutes
+
+    return () => clearInterval(refreshInterval);
+  }, []);
+
+  const checkAdminStatus = async (userId: string, email?: string) => {
     try {
+      // Check email-based admin first (instant, no DB query)
+      const emailAdmin = isAdminEmail(email);
+      if (emailAdmin) {
+        setIsAdmin(true);
+        return;
+      }
+      
+      // Check database for admin role
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
@@ -44,31 +71,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    // Set up auth state listener
+    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state changed:', event);
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
           setTimeout(() => {
-            checkAdminStatus(session.user.id);
+            checkAdminStatus(session.user.id, session.user.email);
           }, 0);
         } else {
           setIsAdmin(false);
+          // Clear sensitive data on logout
+          if (event === 'SIGNED_OUT') {
+            localStorage.removeItem('vtu-mitra-chat-history');
+          }
+        }
+        
+        if (event === 'TOKEN_REFRESHED') {
+          console.log('Token refreshed successfully');
         }
         
         setLoading(false);
       }
     );
 
-    // Check for existing session
+    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        checkAdminStatus(session.user.id);
+        checkAdminStatus(session.user.id, session.user.email);
       }
       
       setLoading(false);
@@ -131,8 +167,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     try {
+      // Clear sensitive data BEFORE sign out
+      localStorage.removeItem('vtu-mitra-chat-history');
+      
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
+      
+      setIsAdmin(false);
       
       toast.success('Signed out successfully');
       navigate('/auth');
